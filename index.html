@@ -1,0 +1,306 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>QR Code Generator</title>
+<script src="https://unpkg.com/qr-code-styling@1.6.0-rc.1/lib/qr-code-styling.js"></script>
+<script src="assets/qrcode-gen.js"></script>
+<style>
+  :root {
+    --bg: #0f1115;
+    --card: #171a21;
+    --border: #2a2e38;
+    --text: #e8eaed;
+    --muted: #9aa0ab;
+    --accent: #f7941d;
+    --accent-blue: #0b5fa5;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0;
+    min-height: 100vh;
+    display: flex;
+    align-items: flex-start;
+    justify-content: center;
+    background: var(--bg);
+    color: var(--text);
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    padding: 48px 24px;
+  }
+  .card {
+    background: var(--card);
+    border: 1px solid var(--border);
+    border-radius: 20px;
+    padding: 48px;
+    width: 100%;
+    max-width: 1200px;
+  }
+  h1 {
+    font-size: 32px;
+    margin: 0 0 8px;
+  }
+  p.sub {
+    color: var(--muted);
+    font-size: 16px;
+    margin: 0 0 32px;
+  }
+  label {
+    display: block;
+    font-size: 14px;
+    color: var(--muted);
+    margin-bottom: 8px;
+  }
+  .url-row {
+    display: flex;
+    gap: 12px;
+    align-items: flex-end;
+  }
+  .url-field {
+    flex: 1;
+  }
+  input[type="text"] {
+    width: 100%;
+    padding: 16px 18px;
+    border-radius: 12px;
+    border: 1px solid var(--border);
+    background: #0f1115;
+    color: var(--text);
+    font-size: 16px;
+    outline: none;
+  }
+  input[type="text"]:focus {
+    border-color: var(--accent-blue);
+  }
+  button {
+    padding: 16px 28px;
+    border-radius: 12px;
+    border: none;
+    background: var(--accent-blue);
+    color: white;
+    font-size: 16px;
+    font-weight: 600;
+    cursor: pointer;
+    white-space: nowrap;
+  }
+  button:hover { opacity: 0.92; }
+  button:disabled { opacity: 0.5; cursor: not-allowed; }
+  button.secondary {
+    background: var(--accent);
+    width: 100%;
+    padding: 14px;
+    font-size: 15px;
+  }
+  #results {
+    margin-top: 40px;
+    display: none;
+    grid-template-columns: repeat(2, 1fr);
+    gap: 28px;
+  }
+  .style-panel {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 16px;
+    background: #0f1115;
+    border: 1px solid var(--border);
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .style-panel h2 {
+    font-size: 16px;
+    margin: 0;
+    font-weight: 600;
+  }
+  .style-panel .qr-frame {
+    background: white;
+    padding: 14px;
+    border-radius: 12px;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    width: 100%;
+  }
+  .style-panel .qr-frame canvas {
+    max-width: 100%;
+    width: 100%;
+    height: auto;
+    display: block;
+  }
+  .dims {
+    font-size: 12px;
+    color: var(--muted);
+  }
+  .short-url {
+    font-size: 11px;
+    color: var(--muted);
+    word-break: break-all;
+    text-align: center;
+  }
+  .mono {
+    font-family: ui-monospace, SFMono-Regular, Menlo, monospace;
+  }
+  .hint {
+    font-size: 13px;
+    color: var(--muted);
+    text-align: center;
+    margin-top: 32px;
+  }
+  @media (max-width: 640px) {
+    #results { grid-template-columns: 1fr; }
+    .url-row { flex-direction: column; align-items: stretch; }
+    .card { padding: 28px; }
+    h1 { font-size: 26px; }
+  }
+</style>
+</head>
+<body>
+  <div class="card">
+    <h1>QR Code Generator</h1>
+    <p class="sub">Enter a URL to generate 1200×1200 QR codes with the logo centered, in three styles at once.</p>
+
+    <div class="url-row">
+      <div class="url-field">
+        <label for="url">URL</label>
+        <input type="text" id="url" placeholder="https://example.com" autocomplete="off" />
+      </div>
+      <div class="url-field">
+        <label for="label">Label (optional, for tracking)</label>
+        <input type="text" id="label" placeholder="e.g. Sunday bulletin" autocomplete="off" />
+      </div>
+      <button id="generate">Generate QR Codes</button>
+    </div>
+    <p id="form-error" class="hint" style="color:#ff8a80; display:none; margin-top: 10px;"></p>
+
+    <div id="results">
+      <div class="style-panel">
+        <h2>Brand Colors</h2>
+        <div class="qr-frame" id="frame-brand"></div>
+        <span class="dims">1200 × 1200</span>
+        <span class="short-url mono" id="url-brand"></span>
+        <button class="secondary" id="download-brand">Download PNG</button>
+      </div>
+      <div class="style-panel">
+        <h2>Classic B&amp;W</h2>
+        <div class="qr-frame" id="frame-classic"></div>
+        <span class="dims">1200 × 1200</span>
+        <span class="short-url mono" id="url-classic"></span>
+        <button class="secondary" id="download-classic">Download PNG</button>
+      </div>
+      <div class="style-panel">
+        <h2>Scan Me — Brand</h2>
+        <div class="qr-frame" id="frame-scanme"></div>
+        <span class="dims">1200 × 1380</span>
+        <span class="short-url mono" id="url-scanme"></span>
+        <button class="secondary" id="download-scanme">Download PNG</button>
+      </div>
+      <div class="style-panel">
+        <h2>Scan Me — Classic B&amp;W</h2>
+        <div class="qr-frame" id="frame-classic-scanme"></div>
+        <span class="dims">1200 × 1380</span>
+        <span class="short-url mono" id="url-classic-scanme"></span>
+        <button class="secondary" id="download-classic-scanme">Download PNG</button>
+      </div>
+    </div>
+
+    <p class="hint">High error correction is used so the logo doesn't affect scannability.</p>
+  </div>
+
+<script>
+  const { SIZE, STYLES, buildStyleCanvas, downloadCanvas } = QRGen;
+
+  const canvases = {};
+
+  const resultsEl = document.getElementById("results");
+  const input = document.getElementById("url");
+  const generateBtn = document.getElementById("generate");
+
+  function normalizeUrl(value) {
+    const trimmed = value.trim();
+    if (!trimmed) return null;
+    if (!/^https?:\/\//i.test(trimmed)) {
+      return "https://" + trimmed;
+    }
+    return trimmed;
+  }
+
+  function showError(msg) {
+    const el = document.getElementById("form-error");
+    el.textContent = msg;
+    el.style.display = msg ? "block" : "none";
+  }
+
+  async function generate() {
+    const url = normalizeUrl(input.value);
+    if (!url) {
+      input.focus();
+      return;
+    }
+    showError("");
+
+    generateBtn.disabled = true;
+    generateBtn.textContent = "Generating…";
+
+    try {
+      const entries = Object.entries(STYLES);
+      const styleKeys = entries.map(([key]) => key);
+
+      const res = await fetch("api/create-links.php", {
+        method: "POST",
+        headers: { "Content-Type": "application/json" },
+        body: JSON.stringify({
+          target: url,
+          label: document.getElementById("label").value.trim(),
+          styles: styleKeys
+        })
+      });
+
+      if (!res.ok) {
+        const err = await res.json().catch(() => ({}));
+        throw new Error(err.error || `Request failed (${res.status})`);
+      }
+
+      const tracked = await res.json();
+      const urlByStyle = {};
+      tracked.forEach((t) => { urlByStyle[t.style] = t.redirectUrl; });
+
+      const results = await Promise.all(
+        entries.map(([key, style]) => buildStyleCanvas(style, urlByStyle[key]))
+      );
+
+      entries.forEach(([key], i) => {
+        const canvas = results[i];
+        canvases[key] = canvas;
+        const frame = document.getElementById(`frame-${key}`);
+        frame.innerHTML = "";
+        frame.appendChild(canvas);
+        document.getElementById(`url-${key}`).textContent = urlByStyle[key];
+      });
+
+      resultsEl.style.display = "grid";
+    } catch (e) {
+      console.error(e);
+      showError(e.message || "Something went wrong. Please try again.");
+    } finally {
+      generateBtn.disabled = false;
+      generateBtn.textContent = "Generate QR Codes";
+    }
+  }
+
+  function download(key) {
+    const canvas = canvases[key];
+    if (!canvas) return;
+    downloadCanvas(canvas, `qrcode-${key}.png`);
+  }
+
+  generateBtn.addEventListener("click", generate);
+  input.addEventListener("keydown", (e) => {
+    if (e.key === "Enter") generate();
+  });
+
+  Object.keys(STYLES).forEach((key) => {
+    document.getElementById(`download-${key}`).addEventListener("click", () => download(key));
+  });
+</script>
+</body>
+</html>
