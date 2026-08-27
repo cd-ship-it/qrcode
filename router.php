@@ -8,7 +8,7 @@ if (preg_match('#/\.#', $uri) || preg_match('#^/data/#', $uri)) {
     return true;
 }
 
-if (preg_match('#^/r/([A-Za-z0-9]+)$#', $uri, $m)) {
+if (preg_match('#(?:^|/)r/([A-Za-z0-9]+)/?$#', $uri, $m)) {
     $_GET['id'] = $m[1];
     require __DIR__ . '/r.php';
     return true;

@@ -2,6 +2,9 @@
 require __DIR__ . '/config.php';
 
 $id = $_GET['id'] ?? '';
+if (!$id && !empty($_SERVER['PATH_INFO'])) {
+    $id = ltrim($_SERVER['PATH_INFO'], '/');
+}
 if (!$id) {
     http_response_code(404);
     echo 'Not found';
