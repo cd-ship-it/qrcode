@@ -157,16 +157,12 @@
 <body>
   <div class="card">
     <h1>QR Code Generator</h1>
-    <p class="sub">Enter a URL to generate 1200×1200 QR codes with the logo centered, in three styles at once.</p>
+    <p class="sub">Enter a URL to generate 1200×1200 QR codes with the logo centered, in four styles at once.</p>
 
     <div class="url-row">
       <div class="url-field">
         <label for="url">URL</label>
         <input type="text" id="url" placeholder="https://example.com" autocomplete="off" />
-      </div>
-      <div class="url-field">
-        <label for="label">Label (optional, for tracking)</label>
-        <input type="text" id="label" placeholder="e.g. Sunday bulletin" autocomplete="off" />
       </div>
       <button id="generate">Generate QR Codes</button>
     </div>
@@ -207,7 +203,7 @@
   </div>
 
 <script>
-  const { SIZE, STYLES, buildStyleCanvas, downloadCanvas } = QRGen;
+  const { STYLES, buildStyleCanvas, downloadCanvas } = QRGen;
 
   const canvases = {};
 
@@ -243,29 +239,8 @@
 
     try {
       const entries = Object.entries(STYLES);
-      const styleKeys = entries.map(([key]) => key);
-
-      const res = await fetch("api/create-links.php", {
-        method: "POST",
-        headers: { "Content-Type": "application/json" },
-        body: JSON.stringify({
-          target: url,
-          label: document.getElementById("label").value.trim(),
-          styles: styleKeys
-        })
-      });
-
-      if (!res.ok) {
-        const err = await res.json().catch(() => ({}));
-        throw new Error(err.error || `Request failed (${res.status})`);
-      }
-
-      const tracked = await res.json();
-      const urlByStyle = {};
-      tracked.forEach((t) => { urlByStyle[t.style] = t.redirectUrl; });
-
       const results = await Promise.all(
-        entries.map(([key, style]) => buildStyleCanvas(style, urlByStyle[key]))
+        entries.map(([, style]) => buildStyleCanvas(style, url))
       );
 
       entries.forEach(([key], i) => {
@@ -274,7 +249,7 @@
         const frame = document.getElementById(`frame-${key}`);
         frame.innerHTML = "";
         frame.appendChild(canvas);
-        document.getElementById(`url-${key}`).textContent = urlByStyle[key];
+        document.getElementById(`url-${key}`).textContent = url;
       });
 
       resultsEl.style.display = "grid";

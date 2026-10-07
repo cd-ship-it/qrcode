@@ -1,15 +1,3 @@
-# MultiViews makes Apache treat /r/{id} as a fuzzy match for r.php and
-# return 300 Multiple Choices instead of running the rewrite below.
-<IfModule mod_negotiation.c>
-  Options -MultiViews
-</IfModule>
-
-RewriteEngine On
-
-# Do not guard with !-f: MultiViews can make "r" look like an existing file
-# (r.php), which would skip this rule.
-RewriteRule ^r/([A-Za-z0-9]+)/?$ r.php?id=$1 [L,QSA]
-
 <FilesMatch "^\.env">
   <IfModule mod_authz_core.c>
     Require all denied

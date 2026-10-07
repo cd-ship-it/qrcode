@@ -1,12 +1,7 @@
-// Shared QR code rendering logic, used by both the generator page (index.html)
-// and the admin panel (admin/index.php) to reproduce a previously-created QR code
-// from its stored style + short link.
+// QR code rendering for the generator page.
 (function (global) {
   const SIZE = 1200;
-  // Resolve the logo relative to this script's own location (rather than hardcoding
-  // a root-absolute or root-relative path) so it works regardless of which page
-  // includes it (site root vs. admin/) and regardless of whether the app is hosted
-  // at the domain root or a subdirectory (e.g. http://host/qrcode/).
+  // Resolve the logo relative to this script so it works at the site root or in a subdirectory.
   const LOGO_SRC = document.currentScript
     ? new URL("../Xpt-ID2015_color.png", document.currentScript.src).href
     : "Xpt-ID2015_color.png";
